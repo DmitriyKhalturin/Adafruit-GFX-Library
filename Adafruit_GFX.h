@@ -8,6 +8,7 @@
 #include "WProgram.h"
 #endif
 #include "gfxfont.h"
+#include "Utf8Decoder.h"
 
 /// A generic graphics superclass that can handle all sorts of drawing. At a
 /// minimum you can subclass and provide drawPixel(). At a maximum you can do a
@@ -104,11 +105,11 @@ public:
                      const uint8_t mask[], int16_t w, int16_t h);
   void drawRGBBitmap(int16_t x, int16_t y, uint16_t *bitmap, uint8_t *mask,
                      int16_t w, int16_t h);
-  void drawChar(int16_t x, int16_t y, unsigned char c, uint16_t color,
+  void drawChar(int16_t x, int16_t y, uint16_t c, uint16_t color,
                 uint16_t bg, uint8_t size);
-  void drawChar(int16_t x, int16_t y, unsigned char c, uint16_t color,
+  void drawChar(int16_t x, int16_t y, uint16_t c, uint16_t color,
                 uint16_t bg, uint8_t size_x, uint8_t size_y);
-  void getTextBounds(const char *string, int16_t x, int16_t y, int16_t *x1,
+  void getTextBounds(const int8_t *string, int16_t x, int16_t y, int16_t *x1,
                      int16_t *y1, uint16_t *w, uint16_t *h);
   void getTextBounds(const __FlashStringHelper *s, int16_t x, int16_t y,
                      int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h);
@@ -177,6 +178,18 @@ public:
   /**********************************************************************/
   void cp437(bool x = true) { _cp437 = x; }
 
+  /**********************************************************************/
+  /*!
+    @brief  Enable (or disable) UTF-8-compatible charset in custom made fonts
+            By default, the font.h files boundled to the library use ASCII charset
+            as UTF-8 fonts need more memory as many AVR chips can offer.
+            Pass 'true' to this function if you are willing to use UTF-8 fonts that
+            you generated whith fontconvert and also your board has enough free memory.
+    @param  x  true = enable (new behavior), false = disable (old behavior)
+  */
+  /**********************************************************************/
+  void utf8(bool x = true) { _utf8 = x; }
+
   using Print::write;
 #if ARDUINO >= 100
   virtual size_t write(uint8_t);
@@ -227,7 +240,7 @@ public:
   int16_t getCursorY(void) const { return cursor_y; };
 
 protected:
-  void charBounds(unsigned char c, int16_t *x, int16_t *y, int16_t *minx,
+  void charBounds(uint8_t c, int16_t *x, int16_t *y, int16_t *minx,
                   int16_t *miny, int16_t *maxx, int16_t *maxy);
   int16_t WIDTH;        ///< This is the 'raw' display width - never changes
   int16_t HEIGHT;       ///< This is the 'raw' display height - never changes
@@ -242,7 +255,10 @@ protected:
   uint8_t rotation;     ///< Display rotation (0 thru 3)
   bool wrap;            ///< If set, 'wrap' text at right edge of display
   bool _cp437;          ///< If set, use correct CP437 charset (default is off)
+  bool _utf8;           ///< If set, use correct UTF8 charset (default is off)
   GFXfont *gfxFont;     ///< Pointer to special font
+
+  Utf8Decoder *utf8Decoder;
 };
 
 /// A simple drawn button UI element
